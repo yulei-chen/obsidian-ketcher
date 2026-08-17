@@ -6,9 +6,7 @@ sketcher.
 
 ## Installation
 
-One-click installation:
-
-<a href="obsidian://show-plugin?id=ketcher">Add Ketcher to Obsidian</a>
+One-click installation: [Add Ketcher to Obsidian](https://community.obsidian.md/plugins/ketcher)
 
 or install from Obsidian under **Settings → Community plugins**.
 
@@ -17,7 +15,7 @@ or install from Obsidian under **Settings → Community plugins**.
 Select the Ketcher ribbon icon to create a new `.ket` file. New files are saved
 to the folder configured under **Settings → Ketcher → Ketcher folder**.
 
-![Obsidian Ketcher demo](./obsidian-ketcher-demo.gif)
+<img src="./obsidian-ketcher-demo.gif" alt="Obsidian Ketcher demo" >
 
 For editor features and shortcuts, see the
 [Ketcher user guide](https://github.com/epam/ketcher/blob/master/documentation/help.md).
