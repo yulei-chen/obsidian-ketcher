@@ -6,11 +6,11 @@ sketcher.
 
 ## Installation
 
-One click installation:
+One-click installation:
 
 <a href="obsidian://show-plugin?id=ketcher">Add Ketcher to Obsidian</a>
 
-Or install from Obsidian under **Settings → Community plugins**.
+or install from Obsidian under **Settings → Community plugins**.
 
 ## Get started
 
