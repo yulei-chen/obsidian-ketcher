@@ -1,6 +1,12 @@
-@import "ketcher-react/dist/index.css";
+@import "../node_modules/ketcher-react/dist/index.css";
+
+.ketcher-container {
+	height: 100%;
+	width: 100%;
+}
 
 .ketcher-container button {
+	color: unset;
 	background-color: initial;
 	box-shadow: initial;
 }
