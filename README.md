@@ -67,6 +67,7 @@ npm version major # 0.2.0 -> 1.0.0
 then
 
 ```bash
-git tag -a 0.2.0 -m "0.2.0"
 git push origin 0.2.0
+git push
+
 ```
