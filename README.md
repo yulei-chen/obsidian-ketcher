@@ -54,40 +54,12 @@ Workflow permissions**, select **Read and write permissions**, and save.
 
 ### Bump the version
 
-Use `npm version` with `--no-git-tag-version` so npm updates `package.json` and
-`package-lock.json` without creating its default `v`-prefixed Git tag. The
+Use `npm version`. The
 repository's `version` lifecycle script also synchronizes `manifest.json` and
 `versions.json`.
 
 ```bash
-npm version patch --no-git-tag-version # 0.2.0 -> 0.2.1
-npm version minor --no-git-tag-version # 0.2.0 -> 0.3.0
-npm version major --no-git-tag-version # 0.2.0 -> 1.0.0
+npm version patch # 0.2.0 -> 0.2.1
+npm version minor # 0.2.0 -> 0.3.0
+npm version major # 0.2.0 -> 1.0.0
 ```
-
-To set an exact version:
-
-```bash
-npm version 0.2.1 --no-git-tag-version
-```
-
-Do not use `npm run version` to bump the version. It only runs the lifecycle
-script against the current `package.json` version.
-
-To release version `0.2.0`:
-
-1. Run the appropriate version command above. Review `package.json`,
-   `package-lock.json`, `manifest.json`, and `versions.json`, then commit and
-   push those changes.
-2. Create and push an annotated tag without a `v` prefix:
-
-   ```bash
-   git tag -a 0.2.0 -m "0.2.0"
-   git push origin 0.2.0
-   ```
-
-3. Wait for the **Release Obsidian plugin** workflow to finish.
-4. Review the generated draft release, add release notes, and publish it.
-
-The workflow rejects mismatched versions or missing assets, generates build
-provenance attestations, and uploads each required asset separately.
