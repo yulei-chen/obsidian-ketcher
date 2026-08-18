@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-ketcher",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Draw chemical structures and reactions using Ketcher.",
 	"main": "main.js",
 	"type": "module",
