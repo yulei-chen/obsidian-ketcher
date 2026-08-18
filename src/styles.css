@@ -12,56 +12,99 @@
 }
 
 .ketcher-file-preview,
-.ketcher-embed {
+.ketcher-preview-svg {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	box-sizing: border-box;
-	min-height: 180px;
-	padding: var(--size-4-3);
-	background: var(--background-primary);
 }
 
 .ketcher-file-preview {
 	height: 100%;
 	min-height: 240px;
+	padding: var(--size-4-3);
+	background: var(--background-primary);
 	overflow: auto;
 }
 
 .ketcher-embed {
-	width: min(100%, 640px);
+	display: inline-flex;
+	align-items: center;
+	box-sizing: border-box;
+	width: fit-content;
+	max-width: 100%;
+	height: auto;
+	min-height: 0;
 	margin-block: var(--size-4-2);
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-m);
+	padding: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
 	cursor: pointer;
+	vertical-align: top;
 }
 
-.ketcher-embed:hover {
+.ketcher-embed .ketcher-preview-svg,
+.ketcher-embed > .ketcher-preview-message {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+}
+
+.ketcher-embed .ketcher-preview-svg {
+	overflow: hidden;
+}
+
+.ketcher-embed > .ketcher-preview-message {
+	box-sizing: border-box;
+	padding: var(--size-4-3);
+}
+
+.ketcher-visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.ketcher-embed:hover .ketcher-preview-svg,
+.ketcher-embed:hover > .ketcher-preview-message {
 	border-color: var(--interactive-accent);
 }
 
 .ketcher-embed:focus-visible {
+	outline: none;
+}
+
+.ketcher-embed:focus-visible .ketcher-preview-svg,
+.ketcher-embed:focus-visible > .ketcher-preview-message {
 	outline: 2px solid var(--interactive-accent);
 	outline-offset: 2px;
 }
 
 .ketcher-preview-svg {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 100%;
-	min-height: 160px;
+	flex: 0 1 auto;
+	width: fit-content;
+	max-width: 100%;
 	color: var(--text-normal);
 }
 
-.ketcher-struct-render,
+.ketcher-struct-render {
+	flex: 0 0 auto;
+	max-width: 100%;
+	pointer-events: none;
+}
+
 .ketcher-preview-svg svg {
 	display: block;
 	width: 100%;
-	height: 100%;
-	max-height: 420px;
-	pointer-events: none;
+	height: auto;
 }
 
 .ketcher-preview-svg svg :is(

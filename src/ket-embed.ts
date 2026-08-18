@@ -8,8 +8,6 @@ import {
 	TFile,
 } from 'obsidian';
 import type {
-	HoverParent,
-	HoverPopover,
 	MarkdownPostProcessorContext,
 	Plugin,
 } from 'obsidian';
@@ -20,7 +18,7 @@ import {
 } from './ket-preview';
 
 const KET_EXTENSION = 'ket';
-const HOVER_SOURCE_ID = 'ketcher';
+let nextEmbedLabelId = 0;
 
 function resolveKetFile(
 	plugin: Plugin,
@@ -33,6 +31,8 @@ function resolveKetFile(
 }
 
 class KetEmbedRenderChild extends MarkdownRenderChild {
+	private readonly accessibleLabelId =
+		`ketcher-embed-label-${++nextEmbedLabelId}`;
 	private readonly preview: KetPreviewComponent;
 	private refreshSequence = 0;
 
@@ -56,8 +56,13 @@ class KetEmbedRenderChild extends MarkdownRenderChild {
 		this.containerEl.addClass('ketcher-embed');
 		this.containerEl.setAttribute('role', 'link');
 		this.containerEl.setAttribute('tabindex', '0');
-		this.containerEl.setAttribute('aria-label', `Open ${this.file.basename}`);
+		this.containerEl.removeAttribute('aria-label');
+		this.containerEl.setAttribute(
+			'aria-labelledby',
+			this.accessibleLabelId,
+		);
 		this.addChild(this.preview);
+		this.renderAccessibleLabel();
 
 		this.registerEvent(
 			this.app.vault.on('modify', (file) => {
@@ -107,14 +112,24 @@ class KetEmbedRenderChild extends MarkdownRenderChild {
 			const data = await this.app.vault.cachedRead(this.file);
 			if (sequence === this.refreshSequence) {
 				this.preview.setData(data);
+				this.renderAccessibleLabel();
 			}
 		} catch (error) {
 			if (sequence === this.refreshSequence) {
 				this.preview.setError(
 					`Unable to read ${this.file.name}: ${getErrorMessage(error)}`,
 				);
+				this.renderAccessibleLabel();
 			}
 		}
+	}
+
+	private renderAccessibleLabel(): void {
+		this.containerEl.createSpan({
+			cls: 'ketcher-visually-hidden',
+			attr: { id: this.accessibleLabelId },
+			text: `Open ${this.file.basename}`,
+		});
 	}
 }
 
@@ -123,8 +138,7 @@ interface LivePreviewEmbed {
 	filePath: string;
 }
 
-class KetLivePreviewManager extends Component implements HoverParent {
-	hoverPopover: HoverPopover | null = null;
+class KetLivePreviewManager extends Component {
 	private readonly embeds = new Map<HTMLElement, LivePreviewEmbed>();
 	private observer?: MutationObserver;
 	private scanQueued = false;
@@ -144,21 +158,12 @@ class KetLivePreviewManager extends Component implements HoverParent {
 			childList: true,
 			subtree: true,
 		});
-
-		this.registerDomEvent(
-			window,
-			'mouseover',
-			(event) => this.handleMouseover(event),
-			{ capture: true },
-		);
 		this.queueScan();
 	}
 
 	onunload(): void {
 		this.observer?.disconnect();
 		this.observer = undefined;
-		this.hoverPopover?.unload();
-		this.hoverPopover = null;
 		for (const { child } of this.embeds.values()) {
 			this.removeChild(child);
 		}
@@ -230,40 +235,6 @@ class KetLivePreviewManager extends Component implements HoverParent {
 		this.embeds.set(element, { child, filePath: file.path });
 	}
 
-	private handleMouseover(event: MouseEvent): void {
-		const link =
-			event.target instanceof Element
-				? event.target.closest<HTMLElement>(
-						'a.internal-link[data-href], .cm-hmd-internal-link',
-					)
-				: null;
-		if (!link) {
-			return;
-		}
-
-		const sourceFile = this.findSourceFile(link);
-		const linktext =
-			link.getAttribute('data-href') ?? link.textContent?.trim() ?? null;
-		const file =
-			sourceFile && linktext
-				? resolveKetFile(this.plugin, linktext, sourceFile.path)
-				: null;
-		if (!file || !sourceFile) {
-			return;
-		}
-
-		event.stopImmediatePropagation();
-		event.stopPropagation();
-		this.plugin.app.workspace.trigger('hover-link', {
-			event,
-			source: HOVER_SOURCE_ID,
-			hoverParent: this,
-			targetEl: link,
-			linktext: file.path,
-			sourcePath: sourceFile.path,
-		});
-	}
-
 	private findSourceFile(element: Element): TFile | null {
 		let result: TFile | null = null;
 		this.plugin.app.workspace.iterateAllLeaves((leaf) => {
@@ -283,10 +254,6 @@ export function registerKetEmbedProcessor(
 	plugin: Plugin,
 	renderer: KetPreviewRenderer,
 ): void {
-	plugin.registerHoverLinkSource(HOVER_SOURCE_ID, {
-		display: 'Ketcher',
-		defaultMod: false,
-	});
 	plugin.addChild(new KetLivePreviewManager(plugin, renderer));
 	plugin.registerMarkdownPostProcessor(
 		(element: HTMLElement, context: MarkdownPostProcessorContext) => {

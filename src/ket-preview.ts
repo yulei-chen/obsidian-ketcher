@@ -7,12 +7,35 @@ import type { Struct } from 'ketcher-core';
 import { Component as ObsidianComponent } from 'obsidian';
 
 const MAX_CACHE_ENTRIES = 50;
+const MIN_PREVIEW_HEIGHT_PX = 120;
+const MIN_PREVIEW_WIDTH_PX = 160;
+const PREVIEW_BOND_LENGTH_PX = 40;
+const PREVIEW_PADDING_PX = 20;
 const PREVIEW_RENDER_EVENT_WINDOW_MS = 1_000;
 const RENDER_COMPLETE_EVENT = 'renderComplete';
 const BASE_RENDER_OPTIONS = {
+	microModeScale: PREVIEW_BOND_LENGTH_PX,
 	needCache: false,
+	rescaleAmount: 1,
 	viewOnlyMode: true,
 };
+
+const SVG_NAMESPACE_URI = 'http://www.w3.org/2000/svg';
+
+interface CoordinateBounds {
+	max: { x: number; y: number };
+	min: { x: number; y: number };
+}
+
+function calculatePreviewDimension(extent: number, minimum: number): number {
+	const finiteExtent = Number.isFinite(extent) ? Math.max(0, extent) : 0;
+	return Math.max(
+		minimum,
+		Math.ceil(
+			finiteExtent * PREVIEW_BOND_LENGTH_PX + PREVIEW_PADDING_PX * 2,
+		),
+	);
+}
 
 function ignoreInvalidTspanDy(callback: () => void): void {
 	// Intentionally call the native method with each SVG element as `this`.
@@ -70,11 +93,12 @@ export class KetPreviewRenderer {
 	}
 
 	renderInto(containerEl: HTMLElement, struct: Struct): void {
-		const rect = containerEl.getBoundingClientRect();
+		const { height, width } = this.getCanvasSize(struct);
 		const ketcherWindow = window as Window & {
 			isPolymerEditorTurnedOn?: boolean;
 		};
 		const previousMode = ketcherWindow.isPolymerEditorTurnedOn;
+		containerEl.style.width = `${width}px`;
 
 		this.previewRenderCompleteUntil = Math.max(
 			this.previewRenderCompleteUntil,
@@ -85,8 +109,8 @@ export class KetPreviewRenderer {
 			ignoreInvalidTspanDy(() => {
 				RenderStruct.render(containerEl, struct, {
 					...BASE_RENDER_OPTIONS,
-					height: Math.max(160, Math.round(rect.height) || 240),
-					width: Math.max(280, Math.round(rect.width) || 640),
+					height,
+					width,
 				});
 			});
 		} finally {
@@ -111,6 +135,25 @@ export class KetPreviewRenderer {
 			event.stopImmediatePropagation();
 		}
 	};
+
+	private getCanvasSize(struct: Struct): { height: number; width: number } {
+		const normalizedStruct = RenderStruct.prepareStruct(struct.clone());
+		normalizedStruct.rescale();
+		const bounds = normalizedStruct.getCoordBoundingBox() as CoordinateBounds;
+		const structureWidth = Math.max(0, bounds.max.x - bounds.min.x);
+		const structureHeight = Math.max(0, bounds.max.y - bounds.min.y);
+
+		return {
+			height: calculatePreviewDimension(
+				structureHeight,
+				MIN_PREVIEW_HEIGHT_PX,
+			),
+			width: calculatePreviewDimension(
+				structureWidth,
+				MIN_PREVIEW_WIDTH_PX,
+			),
+		};
+	}
 
 	private trimCache(): void {
 		while (this.cache.size > MAX_CACHE_ENTRIES) {
@@ -153,12 +196,12 @@ export class KetPreviewComponent extends ObsidianComponent {
 
 			const previewEl = this.containerEl.createDiv({
 				cls: 'ketcher-preview-svg',
-				attr: { 'aria-label': this.alt, role: 'img' },
 			});
 			const renderEl = previewEl.createDiv({
 				cls: 'ketcher-struct-render',
 			});
 			this.renderer.renderInto(renderEl, struct);
+			this.addAccessibleSvgTitle(renderEl);
 		} catch (error) {
 			this.renderError(error);
 		}
@@ -177,6 +220,18 @@ export class KetPreviewComponent extends ObsidianComponent {
 			cls: 'ketcher-preview-message',
 			text: 'Empty chemical structure',
 		});
+	}
+
+	private addAccessibleSvgTitle(renderEl: HTMLElement): void {
+		const svg = renderEl.querySelector('svg');
+		if (!svg) {
+			return;
+		}
+
+		const title = document.createElementNS(SVG_NAMESPACE_URI, 'title');
+		title.textContent = this.alt;
+		svg.prepend(title);
+		svg.setAttribute('role', 'img');
 	}
 
 	private renderError(error: unknown): void {
