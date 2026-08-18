@@ -52,10 +52,33 @@ The release workflow follows the
 Before the first release, open **GitHub → Settings → Actions → General →
 Workflow permissions**, select **Read and write permissions**, and save.
 
+### Bump the version
+
+Use `npm version` with `--no-git-tag-version` so npm updates `package.json` and
+`package-lock.json` without creating its default `v`-prefixed Git tag. The
+repository's `version` lifecycle script also synchronizes `manifest.json` and
+`versions.json`.
+
+```bash
+npm version patch --no-git-tag-version # 0.2.0 -> 0.2.1
+npm version minor --no-git-tag-version # 0.2.0 -> 0.3.0
+npm version major --no-git-tag-version # 0.2.0 -> 1.0.0
+```
+
+To set an exact version:
+
+```bash
+npm version 0.2.1 --no-git-tag-version
+```
+
+Do not use `npm run version` to bump the version. It only runs the lifecycle
+script against the current `package.json` version.
+
 To release version `0.2.0`:
 
-1. Ensure `package.json`, `manifest.json`, and `versions.json` contain the new
-   version, and push those changes.
+1. Run the appropriate version command above. Review `package.json`,
+   `package-lock.json`, `manifest.json`, and `versions.json`, then commit and
+   push those changes.
 2. Create and push an annotated tag without a `v` prefix:
 
    ```bash
