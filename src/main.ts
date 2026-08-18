@@ -8,6 +8,8 @@ import {
 } from 'obsidian';
 import type { WorkspaceLeaf } from 'obsidian';
 import { getErrorMessage } from './errors';
+import { registerKetEmbedProcessor } from './ket-embed';
+import { KetPreviewRenderer } from './ket-preview';
 import { KetView, VIEW_TYPE_KET } from './ket-view';
 import {
 	DEFAULT_SETTINGS,
@@ -18,12 +20,18 @@ import type { KetcherSettings } from './settings';
 
 export default class ObsidianKetcher extends Plugin {
 	settings!: KetcherSettings;
+	private readonly previewRenderer = new KetPreviewRenderer();
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.registerView(VIEW_TYPE_KET, (leaf) => new KetView(leaf));
+		this.registerView(
+			VIEW_TYPE_KET,
+			(leaf) => new KetView(leaf, this.previewRenderer),
+		);
 		this.registerExtensions(['ket'], VIEW_TYPE_KET);
+		registerKetEmbedProcessor(this, this.previewRenderer);
+		this.register(() => this.previewRenderer.destroy());
 
 		addIcon(
 			'ketcher',

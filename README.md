@@ -17,6 +17,12 @@ to the folder configured under **Settings → Ketcher → Ketcher folder**.
 
 <img src="./obsidian-ketcher-demo.gif" alt="Obsidian Ketcher demo" >
 
+Link to a structure with `[[example.ket]]`; hovering the link displays a
+read-only structure preview. Embed a structure directly in a note with
+`![[example.ket]]`; click the preview to open it in Ketcher. Both forms work
+in Live Preview and Reading view. Hover previews use Obsidian's **Page
+preview** core plugin, which must be enabled.
+
 For editor features and shortcuts, see the
 [Ketcher user guide](https://github.com/epam/ketcher/blob/master/documentation/help.md).
 

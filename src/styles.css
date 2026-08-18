@@ -10,3 +10,82 @@
 	background-color: initial;
 	box-shadow: initial;
 }
+
+.ketcher-file-preview,
+.ketcher-embed {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-height: 180px;
+	padding: var(--size-4-3);
+	background: var(--background-primary);
+}
+
+.ketcher-file-preview {
+	height: 100%;
+	min-height: 240px;
+	overflow: auto;
+}
+
+.ketcher-embed {
+	width: min(100%, 640px);
+	margin-block: var(--size-4-2);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	cursor: pointer;
+}
+
+.ketcher-embed:hover {
+	border-color: var(--interactive-accent);
+}
+
+.ketcher-embed:focus-visible {
+	outline: 2px solid var(--interactive-accent);
+	outline-offset: 2px;
+}
+
+.ketcher-preview-svg {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	min-height: 160px;
+	color: var(--text-normal);
+}
+
+.ketcher-struct-render,
+.ketcher-preview-svg svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-height: 420px;
+	pointer-events: none;
+}
+
+.ketcher-preview-svg svg :is(
+		[fill="#000"],
+		[fill="#000000"],
+		[stroke="#000"],
+		[stroke="#000000"]
+	) {
+	color: var(--text-normal);
+}
+
+.ketcher-preview-svg svg :is([fill="#000"], [fill="#000000"]) {
+	fill: currentColor;
+}
+
+.ketcher-preview-svg svg :is([stroke="#000"], [stroke="#000000"]) {
+	stroke: currentColor;
+}
+
+.ketcher-preview-message {
+	color: var(--text-muted);
+	text-align: center;
+}
+
+.ketcher-preview-message.is-error {
+	color: var(--text-error);
+}

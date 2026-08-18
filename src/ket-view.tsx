@@ -5,6 +5,10 @@ import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
 import { getErrorMessage } from './errors';
 import { KetcherEditor } from './ketcher-editor';
+import {
+	KetPreviewComponent,
+	KetPreviewRenderer,
+} from './ket-preview';
 
 export const VIEW_TYPE_KET = 'ket-view';
 
@@ -14,9 +18,13 @@ export class KetView extends TextFileView {
 	private generation = 0;
 	private isReady = false;
 	private ketcher?: Ketcher;
+	private preview?: KetPreviewComponent;
 	private reactRoot?: Root;
 
-	constructor(leaf: WorkspaceLeaf) {
+	constructor(
+		leaf: WorkspaceLeaf,
+		private readonly previewRenderer: KetPreviewRenderer,
+	) {
 		super(leaf);
 	}
 
@@ -28,14 +36,20 @@ export class KetView extends TextFileView {
 		if (clear) {
 			this.clear();
 			this.data = data;
-			this.mountEditor();
+			if (this.isHoverPreview()) {
+				this.mountPreview();
+			} else {
+				this.mountEditor();
+			}
 			return;
 		}
 
 		this.data = data;
 		this.changeSequence += 1;
 
-		if (this.ketcher && this.isReady) {
+		if (this.preview) {
+			this.preview.setData(data);
+		} else if (this.ketcher && this.isReady) {
 			void this.loadDataIntoEditor(this.ketcher, this.generation, data);
 		}
 	}
@@ -46,9 +60,14 @@ export class KetView extends TextFileView {
 		this.isReady = false;
 		this.unsubscribeFromChanges();
 		this.ketcher = undefined;
+		if (this.preview) {
+			this.removeChild(this.preview);
+			this.preview = undefined;
+		}
 		this.reactRoot?.unmount();
 		this.reactRoot = undefined;
 		this.contentEl.empty();
+		this.contentEl.removeClass('ketcher-file-preview');
 		this.data = '';
 	}
 
@@ -65,9 +84,11 @@ export class KetView extends TextFileView {
 	}
 
 	onOpen(): Promise<void> {
-		this.addAction('save', 'Save', () => {
-			void this.saveFromEditor();
-		});
+		if (!this.isHoverPreview()) {
+			this.addAction('save', 'Save', () => {
+				void this.saveFromEditor();
+			});
+		}
 		return Promise.resolve();
 	}
 
@@ -89,6 +110,22 @@ export class KetView extends TextFileView {
 				}}
 			/>,
 		);
+	}
+
+	private mountPreview(): void {
+		this.contentEl.addClass('ketcher-file-preview');
+		this.preview = this.addChild(
+			new KetPreviewComponent(
+				this.contentEl,
+				this.previewRenderer,
+				`Chemical structure from ${this.file?.basename ?? 'KET file'}`,
+			),
+		);
+		this.preview.setData(this.data);
+	}
+
+	private isHoverPreview(): boolean {
+		return this.containerEl.closest('.hover-popover') !== null;
 	}
 
 	private async initializeKetcher(
@@ -177,7 +214,7 @@ export class KetView extends TextFileView {
 
 			this.data = data;
 			await this.save();
-			new Notice('Your structures and reactions have been saved.');
+			new Notice('Saved');
 		} catch (error) {
 			if (generation === this.generation) {
 				this.showError('Unable to save the KET file', error);
